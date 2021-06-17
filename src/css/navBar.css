@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css?family=Pacifico');
+@import url('https://fonts.googleapis.com/css?family=Poiret+One');
+
+.navBarList {
+
+    /* Remove list bullets.*/
+    list-style-type: none;
+
+    /* Remove browser's default list style.*/
+    margin: 0;
+    padding: 0; 
+    
+    /* Navigation bar styling. */
+    background-color: #000000;
+    width: 100%;
+    z-index: 9999;
+    top: 0;
+    left: 0;
+}
+
+.navBarList li {
+    
+    font-family: 'Poiret One', cursive;
+    text-align: right;
+    height: 10vh;
+
+    /* Turn the `navBarHeader` (a list, vertical by default) into a horizontal navigation bar. */
+    display: inline-block;
+}
+
+.logout-item {
+    float: right;
+}
+.profile-item {
+    float: right;
+}
+
+.navLink {
+    font-size: 3vh;
+    line-height: 10vh;
+    height: 10vh;
+    text-decoration: none;
+    color: white;
+    display: block;
+    padding: 0 18px;
+    text-align: center;
+    transition: 0.3s ease;
+}
+
+/* Change the styling of the block being hovered. */
+.navLink:hover {
+    text-decoration: none;
+    color: white;
+    display: block;
+    text-align: center;
+    font-weight: 100;
+    padding: 0px 25px;
+    transition: 0.3s ease;
+    background-color: #7c7c7c;
+    text-decoration: none;
+}
+
+.unauthItem {
+    width: Calc(100%/3);
+}
+
+
+/* Make navbar responsive */
+@media screen and (max-width: 600px) { 
+    .navBarList li { 
+        display:list-item;
+        float:none;
+        font-size: 1vh;
+        box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.2), 0 0px 1px 0 rgba(0, 0, 0, 0.19);
+    }
+
+    .unauthItem {
+        width: 100%;
+    }
+}

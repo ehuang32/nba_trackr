@@ -1,0 +1,33 @@
+{
+    "python.pythonPath": ".venv\\Scripts\\python.exe",
+    "python.terminal.activateEnvironment": true,
+    "python.linting.enabled": true,
+    "python.linting.flake8Enabled": false,
+    "python.formatting.provider": "black",
+    // https://medium.com/@cereblanco/setup-black-and-isort-in-vscode-514804590bf9
+    // https://helpmanual.io/help/isort/
+    // https://code.visualstudio.com/docs/python/editing
+    "editor.formatOnSave": true,
+    "python.sortImports.args": [
+      "--settings-path",
+      "${workspaceFolder}/.isort.cfg"
+    ],
+    "python.formatting.blackArgs": [
+      "--line-length=1200"
+    ],
+    "[python]": {
+      "editor.codeActionsOnSave": {
+        "source.organizeImports": true
+      }
+    },
+    "python.testing.unittestArgs": [
+      "-v",
+      "-s",
+      "./src",
+      "-p",
+      "test_*.py"
+    ],
+    "python.testing.pytestEnabled": false,
+    "python.testing.nosetestsEnabled": false,
+    "python.testing.unittestEnabled": true
+  }
