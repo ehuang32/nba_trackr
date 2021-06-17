@@ -28,7 +28,7 @@ class BetTrackr extends React.Component {
 
 
     componentDidMount() {
-        axios.get(`http://data.nba.net/10s/prod/v1/today.json`)
+        axios.get(`https://data.nba.net/10s/prod/v1/today.json`)
             .then(t_response => {
                 console.log(t_response.data);
                 axios.get(`https://data.nba.net/10s/prod/v1/${t_response.data.links.anchorDate}/scoreboard.json`)
