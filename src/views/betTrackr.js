@@ -43,9 +43,11 @@ class BetTrackr extends React.Component {
                                 .then(bs_response => {
                                     console.log(bs_response.data);
                                     all_gameBS.push(bs_response.data);
-                                    bs_response.data.stats.activePlayers.forEach((player, key2) => {
-                                        all_players.push(player.firstName.concat(" ", player.lastName))
-                                    })
+                                    if ("stats" in bs_response.data) {
+                                        bs_response.data.stats.activePlayers.forEach((player, key2) => {
+                                            all_players.push(player.firstName.concat(" ", player.lastName))
+                                        })
+                                    }
                                 })
                                 .catch(error => { console.log(error) })
                         })
@@ -185,26 +187,28 @@ class BetTrackr extends React.Component {
         this.state.all_scoreboards.forEach((sb, key) => {
             teams[sb.basicGameData.vTeam.teamId] = sb.basicGameData.vTeam.triCode
             teams[sb.basicGameData.hTeam.teamId] = sb.basicGameData.hTeam.triCode
-            sb.stats.activePlayers.forEach((player, key2) => {
-                const scoreline = {
-                    name: player.firstName.concat(" ", player.lastName),
-                    position: player.pos,
-                    team: teams[player.teamId],
-                    min: player.min,
-                    fg: player.fgm.concat(" - ", player.fga),
-                    ft: player.ftm.concat(" - ", player.fta),
-                    tp: player.tpm.concat(" - ", player.tpa),
-                    reb: player.totReb,
-                    ast: player.assists,
-                    stl: player.steals,
-                    blk: player.blocks,
-                    to: player.turnovers,
-                    pFouls: player.pFouls,
-                    plusMinus: player.plusMinus,
-                    pts: player.points,
-                }
-                data.push(scoreline)
-            })
+            if ("stats" in sb) {
+                sb.stats.activePlayers.forEach((player, key2) => {
+                    const scoreline = {
+                        name: player.firstName.concat(" ", player.lastName),
+                        position: player.pos,
+                        team: teams[player.teamId],
+                        min: player.min,
+                        fg: player.fgm.concat(" - ", player.fga),
+                        ft: player.ftm.concat(" - ", player.fta),
+                        tp: player.tpm.concat(" - ", player.tpa),
+                        reb: player.totReb,
+                        ast: player.assists,
+                        stl: player.steals,
+                        blk: player.blocks,
+                        to: player.turnovers,
+                        pFouls: player.pFouls,
+                        plusMinus: player.plusMinus,
+                        pts: player.points,
+                    }
+                    data.push(scoreline)
+                })
+            }
         })
 
         var filteredData = []
