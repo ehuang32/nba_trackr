@@ -27,58 +27,61 @@ class BetTrackr extends React.Component {
         this.handleTrackPlayer = this.handleTrackPlayer.bind(this);
         this.refreshData = this.refreshData.bind(this);
     }
-    //
 
     componentDidMount() {
         axios.get(`https://data.nba.net/10s/prod/v1/today.json`)
             .then(t_response => {
-                console.log(t_response.data);
-                //axios.get(`https://data.nba.net/10s/prod/v1/${t_response.data.links.anchorDate}/scoreboard.json`)
-                axios.get(`https://data.nba.net/10s/prod/v1/20210620/scoreboard.json`)
+                var date = t_response.data.links.anchorDate
+                date = "20210620"
+                axios.get(`https://data.nba.net/10s/prod/v1/${date}/scoreboard.json`)
                     .then(g_response => {
-                        console.log(g_response.data);
                         var all_gameIds = []
                         var all_gameBS = []
                         var all_players = []
                         var all_pbp = []
+                        var promises = []
                         g_response.data.games.forEach((game, key) => {
                             all_gameIds.push(game.gameId)
-                            //axios.get(`https://data.nba.net/10s/prod/v1/${t_response.data.links.anchorDate}/${game.gameId}_boxscore.json`)
-                            axios.get(`https://data.nba.net/10s/prod/v1/20210620/${game.gameId}_boxscore.json`)
-                                .then(bs_response => {
-                                    console.log(bs_response.data);
-                                    all_gameBS.push(bs_response.data);
-                                    if ("stats" in bs_response.data) {
-                                        bs_response.data.stats.activePlayers.forEach((player, key2) => {
-                                            all_players.push(player.firstName.concat(" ", player.lastName))
-                                        })
-                                    }
-                                })
-                                .catch(error => { console.log(error) })
                             var game_pbp = []
-                            for (let i = 1; i < 5; i++) {
-                                //axios.get(`https://data.nba.net/10s/prod/v1/${t_response.data.links.anchorDate}/${game.gameId}_pbp_${i}.json`)
-                                axios.get(`https://data.nba.net/10s/prod/v1/20210620/${game.gameId}_pbp_${i}.json`)
-                                    .then(pbp_response => {
-                                        console.log(pbp_response.data);
-                                        game_pbp.push({ q_num: i, q_data: pbp_response.data });
+                            game_pbp.push(game.vTeam.triCode.concat(" vs ", game.hTeam.triCode))
+                            promises.push(
+                                axios.get(`https://data.nba.net/10s/prod/v1/${date}/${game.gameId}_boxscore.json`)
+                                    .then(bs_response => {
+                                        all_gameBS.push(bs_response.data);
+                                        if ("stats" in bs_response.data) {
+                                            bs_response.data.stats.activePlayers.forEach((player, key2) => {
+                                                all_players.push(player.firstName.concat(" ", player.lastName))
+                                            })
+                                        }
                                     })
                                     .catch(error => { console.log(error) })
+                            )
+                            for (let i = 1; i < 5; i++) {
+                                promises.push(
+                                    axios.get(`https://data.nba.net/10s/prod/v1/${date}/${game.gameId}_pbp_${i}.json`)
+                                        .then(pbp_response => {
+                                            game_pbp.push({ q_num: i, q_data: pbp_response.data });
+                                        })
+                                        .catch(error => { console.log(error) })
+                                )
                             }
                             all_pbp.push(game_pbp)
-                        })
-                        this.setState({
-                            todaysPlayers: all_players,
-                            todaysGames: all_gameIds,
-                            all_scoreboards: all_gameBS,
-                            //todaysDate: t_response.data.links.anchorDate
-                            todaysDate: 20210620,
-                            todaysPbp: all_pbp
+                            Promise.all(promises).then(() => {
+                                all_pbp.push(game_pbp)
+                                this.setState({
+                                    todaysPlayers: all_players,
+                                    todaysGames: all_gameIds,
+                                    all_scoreboards: all_gameBS,
+                                    todaysDate: date,
+                                    todaysPbp: all_pbp
+                                })
+                            })
                         })
                     })
                     .catch(error => { console.log(error) })
             })
             .catch(error => { console.log(error) })
+        this.forceUpdate()
     }
 
     handleInput(e) {
@@ -103,16 +106,20 @@ class BetTrackr extends React.Component {
 
     refreshData() {
         var all_gameBS = []
+        var promises = []
         this.state.todaysGames.forEach((gameId, key) => {
-            axios.get(`https://data.nba.net/10s/prod/v1/${this.state.todaysDate}/${gameId}_boxscore.json`)
-                .then(bs_response => {
-                    console.log(bs_response.data);
-                    all_gameBS.push(bs_response.data);
-                })
-                .catch(error => { console.log(error) })
+            promises.push(
+                axios.get(`https://data.nba.net/10s/prod/v1/${this.state.todaysDate}/${gameId}_boxscore.json`)
+                    .then(bs_response => {
+                        all_gameBS.push(bs_response.data);
+                    })
+                    .catch(error => { console.log(error) })
+            )
         })
-        this.setState({
-            all_scoreboards: all_gameBS
+        Promise.all(promises).then(() => {
+            this.setState({
+                all_scoreboards: all_gameBS
+            })
         })
     }
 
@@ -254,47 +261,35 @@ class BetTrackr extends React.Component {
             className="select"
         />
 
-        var playbyplay = []
-        this.state.todaysPbp.forEach((pbp, key) => {
-            console.log(pbp)
-            pbp.forEach((q_pbp, key2) => {
-                q_pbp.q_data.plays.forEach((play, key3) => {
-                    playbyplay.push(
-                        {
-                            clock: play.clock,
-                            quarter: q_pbp.q_num,
-                            team: play.teamId,
-                            vScore: play.vTeamScore,
-                            hScore: play.hTeamScore,
-                            play: play.description,
-                            player: play.personId
-                        }
-                    )
-                })
-            })
-        })
-
-        // Filter playbyplay
         var formattedPbp = []
-
-        for (let i = 1; i < 5; i++) {
-            playbyplay.forEach((play, key) => {
-                if (play.quarter === i) {
-                    this.state.trackedPlayers.forEach((player, key2) => {
-                        let lastName = player.substring(player.indexOf(" ") + 1)
-                        console.log(lastName);
-                        if (play.play.includes(lastName)) {
-                            console.log(play.play);
-                            formattedPbp.unshift(
-                                <p>
-                                    Q{play.quarter} {play.clock}: {play.play}
-                                </p>
-                            )
+        this.state.todaysPbp.forEach((pbp, key) => {
+            var singlePbp = []
+            var gameName = pbp[0]
+            for (let i = 1; i < 5; i++) {
+                pbp.forEach((q_pbp, key2) => {
+                    if (key2 !== 0) {
+                        if (q_pbp.q_num === i) {
+                            q_pbp.q_data.plays.forEach((play, key3) => {
+                                this.state.trackedPlayers.forEach((player, key3) => {
+                                    let lastName = player.substring(player.indexOf(" ") + 1)
+                                    if (play.description.includes(lastName)) {
+                                        singlePbp.unshift(
+                                            <p>
+                                                Q{q_pbp.q_num} {play.clock}: {play.description}
+                                            </p>
+                                        )
+                                    }
+                                })
+                            })
                         }
-                    })
-                }
-            })
-        }
+                    }
+                })
+            }
+            if (singlePbp.length > 0) {
+                singlePbp.unshift(<h2>{gameName}</h2>)
+            }
+            formattedPbp.unshift(singlePbp)
+        })
         return (
             <div>
                 <Content heading='Your Scoreboard' headingright2={addPlayerButton} headingright={input}>
