@@ -1,5 +1,6 @@
 import React from 'react';
 import Content from '../components/content.js';
+import Subcontent from '../components/subcontent.js'
 import { Table, Select } from 'antd';
 import 'antd/dist/antd.css';
 import '../css/table.css';
@@ -19,7 +20,8 @@ class BetTrackr extends React.Component {
             inputPlayer: "",
             todaysDate: "",
             todaysGames: null,
-            todaysPlayers: null
+            todaysPlayers: null,
+            todaysPbp: null
         }
         this.handleInput = this.handleInput.bind(this);
         this.handleTrackPlayer = this.handleTrackPlayer.bind(this);
@@ -31,15 +33,18 @@ class BetTrackr extends React.Component {
         axios.get(`https://data.nba.net/10s/prod/v1/today.json`)
             .then(t_response => {
                 console.log(t_response.data);
-                axios.get(`https://data.nba.net/10s/prod/v1/${t_response.data.links.anchorDate}/scoreboard.json`)
+                //axios.get(`https://data.nba.net/10s/prod/v1/${t_response.data.links.anchorDate}/scoreboard.json`)
+                axios.get(`https://data.nba.net/10s/prod/v1/20210620/scoreboard.json`)
                     .then(g_response => {
                         console.log(g_response.data);
                         var all_gameIds = []
                         var all_gameBS = []
                         var all_players = []
+                        var all_pbp = []
                         g_response.data.games.forEach((game, key) => {
                             all_gameIds.push(game.gameId)
-                            axios.get(`https://data.nba.net/10s/prod/v1/${t_response.data.links.anchorDate}/${game.gameId}_boxscore.json`)
+                            //axios.get(`https://data.nba.net/10s/prod/v1/${t_response.data.links.anchorDate}/${game.gameId}_boxscore.json`)
+                            axios.get(`https://data.nba.net/10s/prod/v1/20210620/${game.gameId}_boxscore.json`)
                                 .then(bs_response => {
                                     console.log(bs_response.data);
                                     all_gameBS.push(bs_response.data);
@@ -50,12 +55,25 @@ class BetTrackr extends React.Component {
                                     }
                                 })
                                 .catch(error => { console.log(error) })
+                            var game_pbp = []
+                            for (let i = 1; i < 5; i++) {
+                                //axios.get(`https://data.nba.net/10s/prod/v1/${t_response.data.links.anchorDate}/${game.gameId}_pbp_${i}.json`)
+                                axios.get(`https://data.nba.net/10s/prod/v1/20210620/${game.gameId}_pbp_${i}.json`)
+                                    .then(pbp_response => {
+                                        console.log(pbp_response.data);
+                                        game_pbp.push({ q_num: i, q_data: pbp_response.data });
+                                    })
+                                    .catch(error => { console.log(error) })
+                            }
+                            all_pbp.push(game_pbp)
                         })
                         this.setState({
                             todaysPlayers: all_players,
                             todaysGames: all_gameIds,
                             all_scoreboards: all_gameBS,
-                            todaysDate: t_response.data.links.anchorDate
+                            //todaysDate: t_response.data.links.anchorDate
+                            todaysDate: 20210620,
+                            todaysPbp: all_pbp
                         })
                     })
                     .catch(error => { console.log(error) })
@@ -71,10 +89,16 @@ class BetTrackr extends React.Component {
     }
 
     handleTrackPlayer() {
-        this.setState(prevState => ({
-            trackedPlayers: [...prevState.trackedPlayers, this.state.inputPlayer],
-            inputPlayer: ""
-        }))
+        if (this.state.inputPlayer !== "") {
+            this.setState(prevState => ({
+                trackedPlayers: [...prevState.trackedPlayers, this.state.inputPlayer],
+                inputPlayer: ""
+            }))
+        } else {
+            this.setState(prevState => ({
+                trackedPlayers: [...prevState.trackedPlayers]
+            }))
+        }
     }
 
     refreshData() {
@@ -229,12 +253,57 @@ class BetTrackr extends React.Component {
             style={{ width: 200 }}
             className="select"
         />
+
+        var playbyplay = []
+        this.state.todaysPbp.forEach((pbp, key) => {
+            console.log(pbp)
+            pbp.forEach((q_pbp, key2) => {
+                q_pbp.q_data.plays.forEach((play, key3) => {
+                    playbyplay.push(
+                        {
+                            clock: play.clock,
+                            quarter: q_pbp.q_num,
+                            team: play.teamId,
+                            vScore: play.vTeamScore,
+                            hScore: play.hTeamScore,
+                            play: play.description,
+                            player: play.personId
+                        }
+                    )
+                })
+            })
+        })
+
+        // Filter playbyplay
+        var formattedPbp = []
+
+        for (let i = 1; i < 5; i++) {
+            playbyplay.forEach((play, key) => {
+                if (play.quarter === i) {
+                    this.state.trackedPlayers.forEach((player, key2) => {
+                        let lastName = player.substring(player.indexOf(" ") + 1)
+                        console.log(lastName);
+                        if (play.play.includes(lastName)) {
+                            console.log(play.play);
+                            formattedPbp.unshift(
+                                <p>
+                                    Q{play.quarter} {play.clock}: {play.play}
+                                </p>
+                            )
+                        }
+                    })
+                }
+            })
+        }
         return (
             <div>
                 <Content heading='Your Scoreboard' headingright2={addPlayerButton} headingright={input}>
                     {refreshDataButton}
                     <Table className='table' columns={columns} dataSource={filteredData} />
                 </Content>
+                <Subcontent heading='Play-By-Play'>
+                    {formattedPbp}
+                </Subcontent>
             </div>
         )
     }
