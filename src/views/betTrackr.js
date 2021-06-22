@@ -32,7 +32,7 @@ class BetTrackr extends React.Component {
         axios.get(`https://data.nba.net/10s/prod/v1/today.json`)
             .then(t_response => {
                 var date = t_response.data.links.anchorDate
-                date = "20210620"
+                //date = "20210620"
                 axios.get(`https://data.nba.net/10s/prod/v1/${date}/scoreboard.json`)
                     .then(g_response => {
                         var all_gameIds = []
@@ -40,43 +40,53 @@ class BetTrackr extends React.Component {
                         var all_players = []
                         var all_pbp = []
                         var promises = []
-                        g_response.data.games.forEach((game, key) => {
-                            all_gameIds.push(game.gameId)
-                            var game_pbp = []
-                            game_pbp.push(game.vTeam.triCode.concat(" vs ", game.hTeam.triCode))
-                            promises.push(
-                                axios.get(`https://data.nba.net/10s/prod/v1/${date}/${game.gameId}_boxscore.json`)
-                                    .then(bs_response => {
-                                        all_gameBS.push(bs_response.data);
-                                        if ("stats" in bs_response.data) {
-                                            bs_response.data.stats.activePlayers.forEach((player, key2) => {
-                                                all_players.push(player.firstName.concat(" ", player.lastName))
-                                            })
-                                        }
-                                    })
-                                    .catch(error => { console.log(error) })
-                            )
-                            for (let i = 1; i < 5; i++) {
+                        if (g_response.data.games.length === 0) {
+                            this.setState({
+                                todaysPlayers: all_players,
+                                todaysGames: all_gameIds,
+                                all_scoreboards: all_gameBS,
+                                todaysDate: date,
+                                todaysPbp: all_pbp
+                            })
+                        } else {
+                            g_response.data.games.forEach((game, key) => {
+                                all_gameIds.push(game.gameId)
+                                var game_pbp = []
+                                game_pbp.push(game.vTeam.triCode.concat(" vs ", game.hTeam.triCode))
                                 promises.push(
-                                    axios.get(`https://data.nba.net/10s/prod/v1/${date}/${game.gameId}_pbp_${i}.json`)
-                                        .then(pbp_response => {
-                                            game_pbp.push({ q_num: i, q_data: pbp_response.data });
+                                    axios.get(`https://data.nba.net/10s/prod/v1/${date}/${game.gameId}_boxscore.json`)
+                                        .then(bs_response => {
+                                            all_gameBS.push(bs_response.data);
+                                            if ("stats" in bs_response.data) {
+                                                bs_response.data.stats.activePlayers.forEach((player, key2) => {
+                                                    all_players.push(player.firstName.concat(" ", player.lastName))
+                                                })
+                                            }
                                         })
                                         .catch(error => { console.log(error) })
                                 )
-                            }
-                            all_pbp.push(game_pbp)
-                            Promise.all(promises).then(() => {
+                                for (let i = 1; i < 5; i++) {
+                                    promises.push(
+                                        axios.get(`https://data.nba.net/10s/prod/v1/${date}/${game.gameId}_pbp_${i}.json`)
+                                            .then(pbp_response => {
+                                                game_pbp.push({ q_num: i, q_data: pbp_response.data });
+                                            })
+                                            .catch(error => { console.log(error) })
+                                    )
+                                }
                                 all_pbp.push(game_pbp)
-                                this.setState({
-                                    todaysPlayers: all_players,
-                                    todaysGames: all_gameIds,
-                                    all_scoreboards: all_gameBS,
-                                    todaysDate: date,
-                                    todaysPbp: all_pbp
+                                Promise.all(promises).then(() => {
+                                    all_pbp.push(game_pbp)
+                                    this.setState({
+                                        todaysPlayers: all_players,
+                                        todaysGames: all_gameIds,
+                                        all_scoreboards: all_gameBS,
+                                        todaysDate: date,
+                                        todaysPbp: all_pbp
+                                    })
                                 })
                             })
-                        })
+                        }
                     })
                     .catch(error => { console.log(error) })
             })
