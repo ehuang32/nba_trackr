@@ -1,12 +1,18 @@
+// Libraries
 import React from 'react';
+import axios from 'axios';
+import { Select } from 'antd';
+import { AwesomeButton } from 'react-awesome-button';
+
+// Components
 import Content from '../components/content.js';
 import Subcontent from '../components/subcontent.js'
-import { Table, Select } from 'antd';
+import Scoreboard from '../components/scoreboard.js';
+import LoadingScreen from '../components/loading.js';
+
+// CSS
 import 'antd/dist/antd.css';
 import '../css/table.css';
-import axios from 'axios';
-import LoadingScreen from '../components/loading.js';
-import { AwesomeButton } from 'react-awesome-button';
 import "../css/awesomebutton.css";
 import "../css/trackr.css";
 
@@ -74,7 +80,6 @@ class BetTrackr extends React.Component {
                                             .catch(error => { console.log(error) })
                                     )
                                 }
-                                all_pbp.push(game_pbp)
                                 Promise.all(promises).then(() => {
                                     all_pbp.push(game_pbp)
                                     this.setState({
@@ -107,158 +112,56 @@ class BetTrackr extends React.Component {
                 trackedPlayers: [...prevState.trackedPlayers, this.state.inputPlayer],
                 inputPlayer: ""
             }))
-        } else {
-            this.setState(prevState => ({
-                trackedPlayers: [...prevState.trackedPlayers]
-            }))
         }
     }
 
     refreshData() {
         var all_gameBS = []
+        var all_pbp = []
         var promises = []
         this.state.todaysGames.forEach((gameId, key) => {
+            var game_pbp = []
+            var vTeam = ""
+            var hTeam = ""
             promises.push(
                 axios.get(`https://data.nba.net/10s/prod/v1/${this.state.todaysDate}/${gameId}_boxscore.json`)
                     .then(bs_response => {
                         all_gameBS.push(bs_response.data);
+                        vTeam = bs_response.data.basicGameData.vTeam.triCode
+                        hTeam = bs_response.data.basicGameData.hTeam.triCode
                     })
                     .catch(error => { console.log(error) })
             )
-        })
-        Promise.all(promises).then(() => {
-            this.setState({
-                all_scoreboards: all_gameBS
+            for (let i = 1; i < 5; i++) {
+                promises.push(
+                    axios.get(`https://data.nba.net/10s/prod/v1/${this.state.todaysDate}/${gameId}_pbp_${i}.json`)
+                        .then(pbp_response => {
+                            game_pbp.push({ q_num: i, q_data: pbp_response.data });
+                        })
+                        .catch(error => { console.log(error) })
+                )
+            }
+            Promise.all(promises).then(() => {
+                game_pbp.unshift(vTeam.concat(" vs ", hTeam))
+                all_pbp.push(game_pbp)
+                this.setState({
+                    all_scoreboards: all_gameBS,
+                    todaysPbp: all_pbp
+                })
             })
         })
+
     }
 
     render() {
         if (!this.state.all_scoreboards || !this.state.todaysGames || !this.state.todaysPlayers) {
             return <LoadingScreen text={"Fetching Data.."} />
         }
+        // Buttons
         const addPlayerButton = <AwesomeButton onPress={this.handleTrackPlayer} type="primary">Add Player</AwesomeButton>
         const refreshDataButton = <AwesomeButton onPress={this.refreshData} type="secondary">Refresh Data</AwesomeButton>
-        const columns = [
-            {
-                title: 'PLAYER NAME',
-                dataIndex: 'name',
-                key: 'name',
-                sorter: (a, b) => a.name < b.name
-            },
-            {
-                title: 'TEAM',
-                dataIndex: 'team',
-                key: 'team'
-            },
-            {
-                title: 'MIN',
-                dataIndex: 'min',
-                key: 'min',
-                sorter: (a, b) => a.min - b.min
-            },
-            {
-                title: 'FG',
-                dataIndex: 'fg',
-                key: 'fg',
-                sorter: (a, b) => a.fgm - b.fgm
-            },
-            {
-                title: '3PT',
-                dataIndex: 'tp',
-                key: 'tp',
-                sorter: (a, b) => a.tpm - b.tpm
-            },
-            {
-                title: 'FT',
-                dataIndex: 'ft',
-                key: 'ft',
-                sorter: (a, b) => a.ftm - b.ftm
-            },
-            {
-                title: 'REB',
-                dataIndex: 'reb',
-                key: 'reb',
-                sorter: (a, b) => a.reb - b.reb
-            },
-            {
-                title: 'AST',
-                dataIndex: 'ast',
-                key: 'ast',
-                sorter: (a, b) => a.ast - b.ast
-            },
-            {
-                title: 'STL',
-                dataIndex: 'stl',
-                key: 'stl',
-                sorter: (a, b) => a.stl - b.stl
-            },
-            {
-                title: 'BLK',
-                dataIndex: 'blk',
-                key: 'blk',
-                sorter: (a, b) => a.blk - b.blk
-            },
-            {
-                title: 'TO',
-                dataIndex: 'to',
-                key: 'to',
-                sorter: (a, b) => a.to - b.to
-            },
-            {
-                title: 'PF',
-                dataIndex: 'pFouls',
-                key: 'pFouls',
-                sorter: (a, b) => a.pFouls - b.pFouls
-            },
-            {
-                title: '+-',
-                dataIndex: 'plusMinus',
-                key: 'plusMinus',
-            },
-            {
-                title: 'PTS',
-                dataIndex: 'pts',
-                key: 'pts',
-                sorter: (a, b) => a.pts - b.pts
-            }
-        ]
-        var teams = {}
-        var data = []
-        this.state.all_scoreboards.forEach((sb, key) => {
-            teams[sb.basicGameData.vTeam.teamId] = sb.basicGameData.vTeam.triCode
-            teams[sb.basicGameData.hTeam.teamId] = sb.basicGameData.hTeam.triCode
-            if ("stats" in sb) {
-                sb.stats.activePlayers.forEach((player, key2) => {
-                    const scoreline = {
-                        name: player.firstName.concat(" ", player.lastName),
-                        position: player.pos,
-                        team: teams[player.teamId],
-                        min: player.min,
-                        fg: player.fgm.concat(" - ", player.fga),
-                        ft: player.ftm.concat(" - ", player.fta),
-                        tp: player.tpm.concat(" - ", player.tpa),
-                        reb: player.totReb,
-                        ast: player.assists,
-                        stl: player.steals,
-                        blk: player.blocks,
-                        to: player.turnovers,
-                        pFouls: player.pFouls,
-                        plusMinus: player.plusMinus,
-                        pts: player.points,
-                    }
-                    data.push(scoreline)
-                })
-            }
-        })
 
-        var filteredData = []
-        data.forEach((scoreline, key) => {
-            if (this.state.trackedPlayers.includes(scoreline.name)) {
-                filteredData.push(scoreline)
-            }
-        })
-
+        // Input Dropdown Bar
         var myOptions = []
         this.state.todaysPlayers.forEach((player, key) => {
             myOptions.push({ value: player, label: player })
@@ -271,6 +174,7 @@ class BetTrackr extends React.Component {
             className="select"
         />
 
+        // Play by Play
         var formattedPbp = []
         this.state.todaysPbp.forEach((pbp, key) => {
             var singlePbp = []
@@ -304,7 +208,7 @@ class BetTrackr extends React.Component {
             <div>
                 <Content heading='Your Scoreboard' headingright2={addPlayerButton} headingright={input}>
                     {refreshDataButton}
-                    <Table className='table' columns={columns} dataSource={filteredData} />
+                    <Scoreboard trackedPlayers={this.state.trackedPlayers} all_scoreboards={this.state.all_scoreboards} />
                 </Content>
                 <Subcontent heading='Play-By-Play'>
                     {formattedPbp}
