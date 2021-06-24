@@ -21,17 +21,23 @@ class BetTrackr extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            all_scoreboards: null,
-            trackedPlayers: [],
-            inputPlayer: "",
+            todaysScoreboards: null,
             todaysDate: "",
             todaysGames: null,
             todaysPlayers: null,
-            todaysPbp: null
+            todaysPbp: null,
+            trackedPlayers: [],
+            trackedBets: [],
+            inputPlayer: "",
+            betPlayer: "",
+            betStat: "",
+            betLine: "",
+            overUnder: ""
         }
         this.handleInput = this.handleInput.bind(this);
         this.handleTrackPlayer = this.handleTrackPlayer.bind(this);
         this.refreshData = this.refreshData.bind(this);
+        this.handleTrackBet = this.handleTrackBet.bind(this);
     }
 
     componentDidMount() {
@@ -50,7 +56,7 @@ class BetTrackr extends React.Component {
                             this.setState({
                                 todaysPlayers: all_players,
                                 todaysGames: all_gameIds,
-                                all_scoreboards: all_gameBS,
+                                todaysScoreboards: all_gameBS,
                                 todaysDate: date,
                                 todaysPbp: all_pbp
                             })
@@ -85,7 +91,7 @@ class BetTrackr extends React.Component {
                                     this.setState({
                                         todaysPlayers: all_players,
                                         todaysGames: all_gameIds,
-                                        all_scoreboards: all_gameBS,
+                                        todaysScoreboards: all_gameBS,
                                         todaysDate: date,
                                         todaysPbp: all_pbp
                                     })
@@ -99,10 +105,10 @@ class BetTrackr extends React.Component {
         this.forceUpdate()
     }
 
-    handleInput(e) {
+    handleInput(e, name) {
         let value = e;
         this.setState({
-            inputPlayer: value
+            [name]: value
         })
     }
 
@@ -111,6 +117,23 @@ class BetTrackr extends React.Component {
             this.setState(prevState => ({
                 trackedPlayers: [...prevState.trackedPlayers, this.state.inputPlayer],
                 inputPlayer: ""
+            }))
+        }
+    }
+
+    handleTrackBet() {
+        let myPlayer = this.state.betPlayer
+        let myStat = this.state.betStat
+        let myLine = this.state.betLine
+        let overUnder = this.state.overUnder
+        console.log(myPlayer, myStat, myLine, overUnder)
+        if (myPlayer !== "" && myStat !== "" && myLine !== "" && overUnder !== "") {
+            this.setState(prevState => ({
+                trackedBets: [...prevState.trackedBets, { player: myPlayer, stat: myStat, line: myLine, ou: overUnder }],
+                betPlayer: "",
+                betStat: "",
+                betLine: "",
+                overUnder: ""
             }))
         }
     }
@@ -145,7 +168,7 @@ class BetTrackr extends React.Component {
                 game_pbp.unshift(vTeam.concat(" vs ", hTeam))
                 all_pbp.push(game_pbp)
                 this.setState({
-                    all_scoreboards: all_gameBS,
+                    todaysScoreboards: all_gameBS,
                     todaysPbp: all_pbp
                 })
             })
@@ -154,11 +177,12 @@ class BetTrackr extends React.Component {
     }
 
     render() {
-        if (!this.state.all_scoreboards || !this.state.todaysGames || !this.state.todaysPlayers) {
+        if (!this.state.todaysScoreboards || !this.state.todaysGames || !this.state.todaysPlayers) {
             return <LoadingScreen text={"Fetching Data.."} />
         }
         // Buttons
         const addPlayerButton = <AwesomeButton onPress={this.handleTrackPlayer} type="primary">Add Player</AwesomeButton>
+        const addBetButton = <AwesomeButton onPress={this.handleTrackBet} type="primary">Add Bet</AwesomeButton>
         const refreshDataButton = <AwesomeButton onPress={this.refreshData} type="secondary">Refresh Data</AwesomeButton>
 
         // Input Dropdown Bar
@@ -169,10 +193,70 @@ class BetTrackr extends React.Component {
         const input = <Select
             showSearch
             options={myOptions}
-            onChange={(e) => this.handleInput(e)}
+            onChange={(e) => this.handleInput(e, "inputPlayer")}
             style={{ width: 200 }}
             className="select"
+            value={this.state.inputPlayer}
         />
+
+        // Track Bets
+        const betPlayerInput = <Select
+            showSearch
+            options={myOptions}
+            onChange={(e) => this.handleInput(e, "betPlayer")}
+            style={{ width: 200 }}
+            className="select"
+            value={this.state.betPlayer}
+        />
+
+        const stats = ["PTS", "TPM", "REB", "AST", "STL", "BLK", "TO"]
+        const myStats = stats.map(stat =>
+            ({ value: stat, label: stat })
+        )
+        const betStatInput = <Select
+            showSearch
+            options={myStats}
+            onChange={(e) => this.handleInput(e, "betStat")}
+            style={{ width: 200 }}
+            className="select"
+            value={this.state.betStat}
+        />
+
+        let lines = []
+        for (let j = 0; j < 55; j++) {
+            let number = j + 0.5
+            let string = number.toString()
+            lines.push(string)
+        }
+        const myLines = lines.map(line =>
+            ({ value: line, label: line })
+        )
+        const betLineInput = <Select
+            showSearch
+            options={myLines}
+            onChange={(e) => this.handleInput(e, "betLine")}
+            style={{ width: 200 }}
+            className="select"
+            value={this.state.betLine}
+        />
+
+        const overUnder = [
+            { value: "over", label: "Over" },
+            { value: "under", label: "Under" }
+        ]
+        const overUnderInput = <Select
+            showSearch
+            options={overUnder}
+            onChange={(e) => this.handleInput(e, "overUnder")}
+            style={{ width: 200 }}
+            className="select"
+            value={this.state.overUnder}
+        />
+
+        var myBets = this.state.trackedBets.map((bet, betKey) => (
+            <p>{bet.player} {bet.ou} {bet.line} {bet.stat}</p>
+        ))
+
 
         // Play by Play
         var formattedPbp = []
@@ -206,9 +290,21 @@ class BetTrackr extends React.Component {
         })
         return (
             <div>
+                <Subcontent heading="Add Bets">
+                    {betPlayerInput}
+                    {betStatInput}
+                    {betLineInput}
+                    {overUnderInput}
+                    {addBetButton}
+                    {myBets}
+                </Subcontent>
                 <Content heading='Your Scoreboard' headingright2={addPlayerButton} headingright={input}>
                     {refreshDataButton}
-                    <Scoreboard trackedPlayers={this.state.trackedPlayers} all_scoreboards={this.state.all_scoreboards} />
+                    <Scoreboard
+                        trackedPlayers={this.state.trackedPlayers}
+                        todaysScoreboards={this.state.todaysScoreboards}
+                        trackedBets={this.state.trackedBets}
+                    />
                 </Content>
                 <Subcontent heading='Play-By-Play'>
                     {formattedPbp}
