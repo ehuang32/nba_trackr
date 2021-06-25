@@ -126,10 +126,10 @@ class BetTrackr extends React.Component {
         let myStat = this.state.betStat
         let myLine = this.state.betLine
         let overUnder = this.state.overUnder
-        console.log(myPlayer, myStat, myLine, overUnder)
         if (myPlayer !== "" && myStat !== "" && myLine !== "" && overUnder !== "") {
             this.setState(prevState => ({
                 trackedBets: [...prevState.trackedBets, { player: myPlayer, stat: myStat, line: myLine, ou: overUnder }],
+                trackedPlayers: [...prevState.trackedPlayers, myPlayer],
                 betPlayer: "",
                 betStat: "",
                 betLine: "",
