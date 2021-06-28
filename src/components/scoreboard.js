@@ -5,8 +5,8 @@ import '../css/scoreboard.css';
 // Function to parse a stat and bet combo e.g. 15 [o13.5] 5 - 12 [o2.5]
 function hasBetHit(statAndBet) {
     let stat = statAndBet.substring(0, statAndBet.indexOf(" "))
-    let ou = statAndBet.substring(statAndBet.indexOf(" ") + 2, statAndBet.indexOf(" ") + 3)
-    let line = statAndBet.substring(statAndBet.indexOf(" ") + 3, statAndBet.length - 1)
+    let ou = statAndBet.substring(statAndBet.indexOf("[") + 1, statAndBet.indexOf("[") + 2)
+    let line = statAndBet.substring(statAndBet.indexOf("[") + 2, statAndBet.length - 1)
 
     if (ou === "o") {
         if (parseFloat(stat) > parseFloat(line)) {
@@ -285,6 +285,29 @@ class Scoreboard extends React.Component {
                 filteredData.push(scoreline)
             }
         })
+
+        if (data.length === 0) {
+            this.props.trackedPlayers.forEach(player => {
+                const emptyScoreline = {
+                    name: player,
+                    position: "",
+                    team: "",
+                    min: "",
+                    fg: "",
+                    ft: "",
+                    tp: "",
+                    reb: "",
+                    ast: "",
+                    stl: "",
+                    blk: "",
+                    to: "",
+                    pFouls: "",
+                    plusMinus: "",
+                    pts: "",
+                }
+                filteredData.push(emptyScoreline)
+            })
+        }
         return (
             <Table
                 className='table'

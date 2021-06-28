@@ -44,7 +44,7 @@ class BetTrackr extends React.Component {
         axios.get(`https://data.nba.net/10s/prod/v1/today.json`)
             .then(t_response => {
                 var date = t_response.data.links.anchorDate
-                //date = "20210620"
+                // date = "20210628"
                 axios.get(`https://data.nba.net/10s/prod/v1/${date}/scoreboard.json`)
                     .then(g_response => {
                         var all_gameIds = []
@@ -63,6 +63,7 @@ class BetTrackr extends React.Component {
                         } else {
                             g_response.data.games.forEach((game, key) => {
                                 all_gameIds.push(game.gameId)
+                                var teamIds = []
                                 var game_pbp = []
                                 game_pbp.push(game.vTeam.triCode.concat(" vs ", game.hTeam.triCode))
                                 promises.push(
@@ -73,6 +74,9 @@ class BetTrackr extends React.Component {
                                                 bs_response.data.stats.activePlayers.forEach((player, key2) => {
                                                     all_players.push(player.firstName.concat(" ", player.lastName))
                                                 })
+                                            } else {
+                                                teamIds.push(bs_response.data.basicGameData.vTeam.teamId)
+                                                teamIds.push(bs_response.data.basicGameData.hTeam.teamId)
                                             }
                                         })
                                         .catch(error => { console.log(error) })
@@ -88,12 +92,38 @@ class BetTrackr extends React.Component {
                                 }
                                 Promise.all(promises).then(() => {
                                     all_pbp.push(game_pbp)
-                                    this.setState({
-                                        todaysPlayers: all_players,
-                                        todaysGames: all_gameIds,
-                                        todaysScoreboards: all_gameBS,
-                                        todaysDate: date,
-                                        todaysPbp: all_pbp
+                                    let playerIds = []
+                                    let promises2 = []
+                                    teamIds.forEach(teamId => {
+                                        promises2.push(
+                                            // Get all of team's player ids
+                                            axios.get(`https://data.nba.net/10s/prod/v1/${t_response.data.seasonScheduleYear}/teams/${teamId}/roster.json`)
+                                                .then(team_response => {
+                                                    team_response.data.league.standard.players.forEach(player => {
+                                                        playerIds.push(player.personId)
+                                                    })
+                                                })
+                                                .catch(error => { console.log(error) })
+                                        )
+                                    })
+                                    Promise.all(promises2).then(() => {
+                                        // Get all players in the NBA
+                                        axios.get(`https://data.nba.net/prod/v1/${t_response.data.seasonScheduleYear}/players.json`)
+                                            .then(players_response => {
+                                                players_response.data.league.standard.forEach(player => {
+                                                    if (playerIds.includes(player.personId)) {
+                                                        all_players.push(player.firstName.concat(" ", player.lastName))
+                                                    }
+                                                })
+                                                this.setState({
+                                                    todaysPlayers: all_players,
+                                                    todaysGames: all_gameIds,
+                                                    todaysScoreboards: all_gameBS,
+                                                    todaysDate: date,
+                                                    todaysPbp: all_pbp
+                                                })
+                                            })
+                                            .catch(error => { console.log(error) })
                                     })
                                 })
                             })
@@ -114,10 +144,16 @@ class BetTrackr extends React.Component {
 
     handleTrackPlayer() {
         if (this.state.inputPlayer !== "") {
-            this.setState(prevState => ({
-                trackedPlayers: [...prevState.trackedPlayers, this.state.inputPlayer],
-                inputPlayer: ""
-            }))
+            if (this.state.trackedPlayers.includes(this.state.inputPlayer)) {
+                this.setState({
+                    inputPlayer: ""
+                })
+            } else {
+                this.setState(prevState => ({
+                    trackedPlayers: [...prevState.trackedPlayers, this.state.inputPlayer],
+                    inputPlayer: ""
+                }))
+            }
         }
     }
 
@@ -127,14 +163,24 @@ class BetTrackr extends React.Component {
         let myLine = this.state.betLine
         let overUnder = this.state.overUnder
         if (myPlayer !== "" && myStat !== "" && myLine !== "" && overUnder !== "") {
-            this.setState(prevState => ({
-                trackedBets: [...prevState.trackedBets, { player: myPlayer, stat: myStat, line: myLine, ou: overUnder }],
-                trackedPlayers: [...prevState.trackedPlayers, myPlayer],
-                betPlayer: "",
-                betStat: "",
-                betLine: "",
-                overUnder: ""
-            }))
+            if (this.state.trackedPlayers.includes(myPlayer)) {
+                this.setState(prevState => ({
+                    trackedBets: [...prevState.trackedBets, { player: myPlayer, stat: myStat, line: myLine, ou: overUnder }],
+                    betPlayer: "",
+                    betStat: "",
+                    betLine: "",
+                    overUnder: ""
+                }))
+            } else {
+                this.setState(prevState => ({
+                    trackedBets: [...prevState.trackedBets, { player: myPlayer, stat: myStat, line: myLine, ou: overUnder }],
+                    trackedPlayers: [...prevState.trackedPlayers, myPlayer],
+                    betPlayer: "",
+                    betStat: "",
+                    betLine: "",
+                    overUnder: ""
+                }))
+            }
         }
     }
 
