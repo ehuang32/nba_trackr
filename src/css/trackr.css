@@ -1,3 +1,7 @@
 .select {
     font: 13.3333px Arial;
 }
+
+.bold {
+    font-weight: bold;
+}

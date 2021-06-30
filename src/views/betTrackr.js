@@ -26,13 +26,15 @@ class BetTrackr extends React.Component {
             todaysGames: null,
             todaysPlayers: null,
             todaysPbp: null,
+            newPbp: null,
             trackedPlayers: [],
             trackedBets: [],
             inputPlayer: "",
             betPlayer: "",
             betStat: "",
             betLine: "",
-            overUnder: ""
+            overUnder: "",
+            intervalID: 0
         }
         this.handleInput = this.handleInput.bind(this);
         this.handleTrackPlayer = this.handleTrackPlayer.bind(this);
@@ -115,12 +117,15 @@ class BetTrackr extends React.Component {
                                                         all_players.push(player.firstName.concat(" ", player.lastName))
                                                     }
                                                 })
+                                                //var refreshInterval = setInterval(() => { this.refreshData() }, 10000);
                                                 this.setState({
+                                                    //intervalID: refreshInterval,
                                                     todaysPlayers: all_players,
                                                     todaysGames: all_gameIds,
                                                     todaysScoreboards: all_gameBS,
                                                     todaysDate: date,
-                                                    todaysPbp: all_pbp
+                                                    todaysPbp: all_pbp,
+                                                    newPbp: all_pbp
                                                 })
                                             })
                                             .catch(error => { console.log(error) })
@@ -132,8 +137,11 @@ class BetTrackr extends React.Component {
                     .catch(error => { console.log(error) })
             })
             .catch(error => { console.log(error) })
-        this.forceUpdate()
     }
+
+    // componentWillUnmount() {
+    //     clearInterval(this.state.intervalID)
+    // }
 
     handleInput(e, name) {
         let value = e;
@@ -188,38 +196,40 @@ class BetTrackr extends React.Component {
         var all_gameBS = []
         var all_pbp = []
         var promises = []
-        this.state.todaysGames.forEach((gameId, key) => {
-            var game_pbp = []
-            var vTeam = ""
-            var hTeam = ""
-            promises.push(
-                axios.get(`https://data.nba.net/10s/prod/v1/${this.state.todaysDate}/${gameId}_boxscore.json`)
-                    .then(bs_response => {
-                        all_gameBS.push(bs_response.data);
-                        vTeam = bs_response.data.basicGameData.vTeam.triCode
-                        hTeam = bs_response.data.basicGameData.hTeam.triCode
-                    })
-                    .catch(error => { console.log(error) })
-            )
-            for (let i = 1; i < 5; i++) {
+        if (this.state.todaysGames !== null) {
+            this.state.todaysGames.forEach((gameId, key) => {
+                var game_pbp = []
+                var vTeam = ""
+                var hTeam = ""
                 promises.push(
-                    axios.get(`https://data.nba.net/10s/prod/v1/${this.state.todaysDate}/${gameId}_pbp_${i}.json`)
-                        .then(pbp_response => {
-                            game_pbp.push({ q_num: i, q_data: pbp_response.data });
+                    axios.get(`https://data.nba.net/10s/prod/v1/${this.state.todaysDate}/${gameId}_boxscore.json`)
+                        .then(bs_response => {
+                            all_gameBS.push(bs_response.data);
+                            vTeam = bs_response.data.basicGameData.vTeam.triCode
+                            hTeam = bs_response.data.basicGameData.hTeam.triCode
                         })
                         .catch(error => { console.log(error) })
                 )
-            }
-            Promise.all(promises).then(() => {
-                game_pbp.unshift(vTeam.concat(" vs ", hTeam))
-                all_pbp.push(game_pbp)
-                this.setState({
-                    todaysScoreboards: all_gameBS,
-                    todaysPbp: all_pbp
+                for (let i = 1; i < 5; i++) {
+                    promises.push(
+                        axios.get(`https://data.nba.net/10s/prod/v1/${this.state.todaysDate}/${gameId}_pbp_${i}.json`)
+                            .then(pbp_response => {
+                                game_pbp.push({ q_num: i, q_data: pbp_response.data });
+                            })
+                            .catch(error => { console.log(error) })
+                    )
+                }
+                Promise.all(promises).then(() => {
+                    game_pbp.unshift(vTeam.concat(" vs ", hTeam))
+                    all_pbp.push(game_pbp)
+                    this.setState(prevState => ({
+                        todaysScoreboards: all_gameBS,
+                        todaysPbp: prevState.newPbp,
+                        newPbp: all_pbp
+                    }))
                 })
             })
-        })
-
+        }
     }
 
     render() {
@@ -306,7 +316,7 @@ class BetTrackr extends React.Component {
 
         // Play by Play
         var formattedPbp = []
-        this.state.todaysPbp.forEach((pbp, key) => {
+        this.state.newPbp.forEach((pbp, key) => {
             var singlePbp = []
             var gameName = pbp[0]
             for (let i = 1; i < 5; i++) {
@@ -314,11 +324,16 @@ class BetTrackr extends React.Component {
                     if (key2 !== 0) {
                         if (q_pbp.q_num === i) {
                             q_pbp.q_data.plays.forEach((play, key3) => {
-                                this.state.trackedPlayers.forEach((player, key3) => {
+                                this.state.trackedPlayers.forEach((player, key4) => {
+                                    let isBold = ""
+                                    if (this.state.todaysPbp[key][key2].q_data.plays[key3] !== play) {
+                                        isBold = "bold"
+                                    }
+
                                     let lastName = player.substring(player.indexOf(" ") + 1)
                                     if (play.description.includes(lastName)) {
                                         singlePbp.unshift(
-                                            <p>
+                                            <p className={isBold}>
                                                 Q{q_pbp.q_num} {play.clock}: {play.description}
                                             </p>
                                         )
