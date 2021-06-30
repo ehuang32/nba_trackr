@@ -177,12 +177,15 @@ class Games extends React.Component {
 
         var scoreboardCarousel = data.map((game, key) => (
             <div>
-                <h2>{teamsList[key]}</h2>
+                <h2 className="bold">{teamsList[key]}</h2>
                 <Table
                     className='table'
                     columns={columns}
                     dataSource={game}
                     rowClassName={(record, index) => index % 2 === 0 ? 'table-row-light' : 'table-row-dark'}
+                    size="small"
+                    bordered
+                    pagination={{ pageSize: 30 }}
                 />
             </div>
         ))
