@@ -9,13 +9,16 @@ class NavBar extends React.Component {
         return (
             <div className='navBar'>
                 <ul className='navBarList'>
-                    <li className='navBar-item'> 
-                        <Link to = "/" className = "navLink"> Homepage </Link>
+                    <li className='navBar-item'>
+                        <Link to="/" className="navLink"> Homepage </Link>
                     </li>
                     <li className='navBar-item'>
-                        <Link to = "/bet" className = "navLink"> BetTrackr </Link>
+                        <Link to="/bet" className="navLink"> BetTrackr </Link>
                     </li>
-                    
+                    <li className='navBar-item'>
+                        <Link to="/games" className="navLink"> Games </Link>
+                    </li>
+
                 </ul>
             </div>
         )
