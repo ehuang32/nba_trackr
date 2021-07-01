@@ -324,11 +324,14 @@ class BetTrackr extends React.Component {
                     if (key2 !== 0) {
                         if (q_pbp.q_num === i) {
                             q_pbp.q_data.plays.forEach((play, key3) => {
-                                this.state.trackedPlayers.forEach((player, key4) => {
+                                for (let i = 0; i < this.state.trackedPlayers.length; i++) {
+                                    let player = this.state.trackedPlayers[i]
                                     let isBold = ""
-                                    if (this.state.todaysPbp[key][key2].q_data.plays[key3] !== play) {
+                                    if (!this.state.todaysPbp[key][key2].q_data.plays.includes(play)) {
                                         isBold = "bold"
                                     }
+                                    console.log(this.state.todaysPbp[key][key2].q_data.plays)
+                                    console.log(play)
 
                                     let lastName = player.substring(player.indexOf(" ") + 1)
                                     if (play.description.includes(lastName)) {
@@ -337,8 +340,9 @@ class BetTrackr extends React.Component {
                                                 Q{q_pbp.q_num} {play.clock}: {play.description}
                                             </p>
                                         )
+                                        break;
                                     }
-                                })
+                                }
                             })
                         }
                     }

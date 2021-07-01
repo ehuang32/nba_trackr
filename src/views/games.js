@@ -1,7 +1,6 @@
 import React from 'react';
 import axios from 'axios';
-import { Carousel, Table } from 'antd';
-import { LeftOutlined, RightOutlined } from '@ant-design/icons'
+import { Table } from 'antd';
 import LoadingScreen from '../components/loading.js';
 import Content from '../components/content.js';
 import '../css/scoreboard.css';
