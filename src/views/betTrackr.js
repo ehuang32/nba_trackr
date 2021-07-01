@@ -324,14 +324,25 @@ class BetTrackr extends React.Component {
                     if (key2 !== 0) {
                         if (q_pbp.q_num === i) {
                             q_pbp.q_data.plays.forEach((play, key3) => {
-                                for (let i = 0; i < this.state.trackedPlayers.length; i++) {
-                                    let player = this.state.trackedPlayers[i]
+                                for (let j = 0; j < this.state.trackedPlayers.length; j++) {
+                                    let player = this.state.trackedPlayers[j]
                                     let isBold = ""
-                                    if (!this.state.todaysPbp[key][key2].q_data.plays.includes(play)) {
-                                        isBold = "bold"
-                                    }
-                                    console.log(this.state.todaysPbp[key][key2].q_data.plays)
-                                    console.log(play)
+                                    this.state.todaysPbp[key].forEach(q_pbp => {
+                                        if (q_pbp.q_num === i) {
+                                            let newPlay = true
+                                            q_pbp.q_data.plays.forEach(oldPlay => {
+                                                if (oldPlay.description === play.description) {
+                                                    newPlay = false
+                                                }
+                                            })
+                                            if (newPlay) {
+                                                isBold = "bold"
+                                            }
+                                        }
+                                    })
+                                    // if (!this.state.todaysPbp[key][key2].q_data.plays.includes(play)) {
+                                    //     isBold = "bold"
+                                    // }
 
                                     let lastName = player.substring(player.indexOf(" ") + 1)
                                     if (play.description.includes(lastName)) {
