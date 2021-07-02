@@ -1,8 +1,9 @@
 // Libraries
 import React from 'react';
 import axios from 'axios';
-import { Select } from 'antd';
+import { Select, Button } from 'antd';
 import { AwesomeButton } from 'react-awesome-button';
+import { DeleteOutlined } from '@ant-design/icons';
 
 // Components
 import Content from '../components/content.js';
@@ -38,8 +39,10 @@ class BetTrackr extends React.Component {
         }
         this.handleInput = this.handleInput.bind(this);
         this.handleTrackPlayer = this.handleTrackPlayer.bind(this);
+        this.removeTrackPlayer = this.removeTrackPlayer.bind(this);
         this.refreshData = this.refreshData.bind(this);
         this.handleTrackBet = this.handleTrackBet.bind(this);
+        this.removeTrackBet = this.removeTrackBet.bind(this);
     }
 
     componentDidMount() {
@@ -143,6 +146,7 @@ class BetTrackr extends React.Component {
     //     clearInterval(this.state.intervalID)
     // }
 
+
     handleInput(e, name) {
         let value = e;
         this.setState({
@@ -163,6 +167,14 @@ class BetTrackr extends React.Component {
                 }))
             }
         }
+    }
+
+    removeTrackPlayer(name) {
+        let newPlayers = this.state.trackedPlayers
+        newPlayers.splice(newPlayers.indexOf(name), 1)
+        this.setState({
+            trackedPlayers: newPlayers
+        })
     }
 
     handleTrackBet() {
@@ -190,6 +202,14 @@ class BetTrackr extends React.Component {
                 }))
             }
         }
+    }
+
+    removeTrackBet(betIndex) {
+        let newBets = this.state.trackedBets
+        newBets.splice(betIndex, 1)
+        this.setState({
+            trackedBets: newBets
+        })
     }
 
     refreshData() {
@@ -265,7 +285,7 @@ class BetTrackr extends React.Component {
             value={this.state.betPlayer}
         />
 
-        const stats = ["PTS", "TPM", "REB", "AST", "STL", "BLK", "TO"]
+        const stats = ["PTS", "3PM", "REB", "AST", "STL", "BLK", "TO"]
         const myStats = stats.map(stat =>
             ({ value: stat, label: stat })
         )
@@ -310,7 +330,10 @@ class BetTrackr extends React.Component {
         />
 
         var myBets = this.state.trackedBets.map((bet, betKey) => (
-            <p>{bet.player} {bet.ou} {bet.line} {bet.stat}</p>
+            <div>
+                <Button type="text" onClick={() => this.removeTrackBet(betKey)}><DeleteOutlined /></Button>
+                <strong> {bet.player} {bet.ou} {bet.line} {bet.stat}</strong>
+            </div>
         ))
 
 
@@ -380,6 +403,7 @@ class BetTrackr extends React.Component {
                         trackedPlayers={this.state.trackedPlayers}
                         todaysScoreboards={this.state.todaysScoreboards}
                         trackedBets={this.state.trackedBets}
+                        removeTrackPlayer={this.removeTrackPlayer}
                     />
                 </Content>
                 <Subcontent heading='Play-By-Play'>

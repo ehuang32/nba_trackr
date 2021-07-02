@@ -1,5 +1,6 @@
 import React from 'react';
-import { Table } from 'antd';
+import { Table, Button } from 'antd';
+import { DeleteOutlined } from '@ant-design/icons';
 import '../css/scoreboard.css';
 
 // Function to parse a stat and bet combo e.g. 15 [o13.5] 5 - 12 [o2.5]
@@ -25,8 +26,10 @@ function hasBetHit(statAndBet) {
 
 
 class Scoreboard extends React.Component {
-    render() {
-        const columns = [
+
+    constructor(props) {
+        super(props);
+        this.columns = [
             {
                 title: 'PLAYER NAME',
                 dataIndex: 'name',
@@ -206,8 +209,20 @@ class Scoreboard extends React.Component {
                         }
                     }
                 }
+            },
+            {
+                title: '',
+                key: '',
+                render: (text, record) => {
+                    return (
+                        <Button type="text" onClick={() => this.props.removeTrackPlayer(record.name)}><DeleteOutlined /></Button>
+                    )
+                }
             }
         ]
+    }
+
+    render() {
         var teams = {}
         var data = []
         this.props.todaysScoreboards.forEach((sb, key) => {
@@ -234,7 +249,7 @@ class Scoreboard extends React.Component {
                                 case "PTS":
                                     ptsLine = lineSuffix
                                     break;
-                                case "TPM":
+                                case "3PM":
                                     tpmLine = lineSuffix
                                     break;
                                 case "REB":
@@ -311,7 +326,7 @@ class Scoreboard extends React.Component {
         return (
             <Table
                 className='table'
-                columns={columns}
+                columns={this.columns}
                 dataSource={filteredData}
                 rowClassName={(record, index) => index % 2 === 0 ? 'table-row-light' : 'table-row-dark'}
             />
