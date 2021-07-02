@@ -1,6 +1,5 @@
 import React from 'react';
 import { Table, Button } from 'antd';
-import { DeleteOutlined } from '@ant-design/icons';
 import '../css/scoreboard.css';
 
 // Function to parse a stat and bet combo e.g. 15 [o13.5] 5 - 12 [o2.5]
@@ -215,7 +214,7 @@ class Scoreboard extends React.Component {
                 key: '',
                 render: (text, record) => {
                     return (
-                        <Button type="text" onClick={() => this.props.removeTrackPlayer(record.name)}><DeleteOutlined /></Button>
+                        <Button type="text" onClick={() => this.props.removeTrackPlayer(record.name)}>x</Button>
                     )
                 }
             }

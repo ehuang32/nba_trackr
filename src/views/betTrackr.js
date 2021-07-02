@@ -3,7 +3,6 @@ import React from 'react';
 import axios from 'axios';
 import { Select, Button } from 'antd';
 import { AwesomeButton } from 'react-awesome-button';
-import { DeleteOutlined } from '@ant-design/icons';
 
 // Components
 import Content from '../components/content.js';
@@ -331,7 +330,7 @@ class BetTrackr extends React.Component {
 
         var myBets = this.state.trackedBets.map((bet, betKey) => (
             <div>
-                <Button type="text" onClick={() => this.removeTrackBet(betKey)}><DeleteOutlined /></Button>
+                <Button type="text" onClick={() => this.removeTrackBet(betKey)}>x</Button>
                 <strong> {bet.player} {bet.ou} {bet.line} {bet.stat}</strong>
             </div>
         ))
