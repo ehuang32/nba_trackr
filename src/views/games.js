@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Table } from 'antd';
 import LoadingScreen from '../components/loading.js';
 import Content from '../components/content.js';
-import '../css/scoreboard.css';
+import '../css/boxscore.css';
 import '../css/table.css';
 import 'antd/dist/antd.css';
 

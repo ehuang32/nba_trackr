@@ -7,8 +7,9 @@ import { AwesomeButton } from 'react-awesome-button';
 // Components
 import Content from '../components/content.js';
 import Subcontent from '../components/subcontent.js'
-import Scoreboard from '../components/scoreboard.js';
+import BoxScore from '../components/boxscore.js';
 import LoadingScreen from '../components/loading.js';
+import Scoreboard from '../components/scoreboard.js';
 
 // CSS
 import 'antd/dist/antd.css';
@@ -28,12 +29,17 @@ class BetTrackr extends React.Component {
             todaysPbp: null,
             newPbp: null,
             trackedPlayers: [],
-            trackedBets: [],
             inputPlayer: "",
-            betPlayer: "",
-            betStat: "",
-            betLine: "",
-            overUnder: "",
+            betPlayerName: "",
+            betPlayerStat: "",
+            betPlayerLine: "",
+            betPlayerOU: "",
+            trackedBets: [],
+            betTeamName: "",
+            betTeamBet: "",
+            betTeamLine: "",
+            betTeamOUMP: "",
+            trackedTeamBets: [],
             intervalID: 0
         }
         this.handleInput = this.handleInput.bind(this);
@@ -42,13 +48,15 @@ class BetTrackr extends React.Component {
         this.refreshData = this.refreshData.bind(this);
         this.handleTrackBet = this.handleTrackBet.bind(this);
         this.removeTrackBet = this.removeTrackBet.bind(this);
+        this.handleTrackTeamBet = this.handleTrackTeamBet.bind(this);
+        this.removeTrackTeamBet = this.removeTrackTeamBet.bind(this);
     }
 
     componentDidMount() {
         axios.get(`https://data.nba.net/10s/prod/v1/today.json`)
             .then(t_response => {
                 var date = t_response.data.links.anchorDate
-                // date = "20210628"
+                //date = "20210528"
                 axios.get(`https://data.nba.net/10s/prod/v1/${date}/scoreboard.json`)
                     .then(g_response => {
                         var all_gameIds = []
@@ -177,27 +185,27 @@ class BetTrackr extends React.Component {
     }
 
     handleTrackBet() {
-        let myPlayer = this.state.betPlayer
-        let myStat = this.state.betStat
-        let myLine = this.state.betLine
-        let overUnder = this.state.overUnder
-        if (myPlayer !== "" && myStat !== "" && myLine !== "" && overUnder !== "") {
+        let myPlayer = this.state.betPlayerName
+        let myStat = this.state.betPlayerStat
+        let myLine = this.state.betPlayerLine
+        let betPlayerOU = this.state.betPlayerOU
+        if (myPlayer !== "" && myStat !== "" && myLine !== "" && betPlayerOU !== "") {
             if (this.state.trackedPlayers.includes(myPlayer)) {
                 this.setState(prevState => ({
-                    trackedBets: [...prevState.trackedBets, { player: myPlayer, stat: myStat, line: myLine, ou: overUnder }],
-                    betPlayer: "",
-                    betStat: "",
-                    betLine: "",
-                    overUnder: ""
+                    trackedBets: [...prevState.trackedBets, { player: myPlayer, stat: myStat, line: myLine, ou: betPlayerOU }],
+                    betPlayerName: "",
+                    betPlayerStat: "",
+                    betPlayerLine: "",
+                    betPlayerOU: ""
                 }))
             } else {
                 this.setState(prevState => ({
-                    trackedBets: [...prevState.trackedBets, { player: myPlayer, stat: myStat, line: myLine, ou: overUnder }],
+                    trackedBets: [...prevState.trackedBets, { player: myPlayer, stat: myStat, line: myLine, ou: betPlayerOU }],
                     trackedPlayers: [...prevState.trackedPlayers, myPlayer],
-                    betPlayer: "",
-                    betStat: "",
-                    betLine: "",
-                    overUnder: ""
+                    betPlayerName: "",
+                    betPlayerStat: "",
+                    betPlayerLine: "",
+                    betPlayerOU: ""
                 }))
             }
         }
@@ -208,6 +216,30 @@ class BetTrackr extends React.Component {
         newBets.splice(betIndex, 1)
         this.setState({
             trackedBets: newBets
+        })
+    }
+
+    handleTrackTeamBet() {
+        let teamName = this.state.betTeamName
+        let teamBet = this.state.betTeamBet
+        let teamLine = this.state.betTeamLine
+        let teamOUMP = this.state.betTeamOUMP
+        if (teamName !== "" && teamBet !== "" && teamLine !== "" && teamOUMP !== "") {
+            this.setState(prevState => ({
+                trackedTeamBets: [...prevState.trackedTeamBets, { team: teamName, bet: teamBet, line: teamLine, oump: teamOUMP }],
+                betTeamName: "",
+                betTeamBet: "",
+                betTeamLine: "",
+                betTeamOUMP: ""
+            }))
+        }
+    }
+
+    removeTrackTeamBet(betIndex) {
+        let newBets = this.state.trackedTeamBets
+        newBets.splice(betIndex, 1)
+        this.setState({
+            trackedTeamBets: newBets
         })
     }
 
@@ -258,43 +290,44 @@ class BetTrackr extends React.Component {
         // Buttons
         const addPlayerButton = <AwesomeButton onPress={this.handleTrackPlayer} type="primary">Add Player</AwesomeButton>
         const addBetButton = <AwesomeButton onPress={this.handleTrackBet} type="primary">Add Bet</AwesomeButton>
+        const addTeamBetButton = <AwesomeButton onPress={this.handleTrackTeamBet} type="primary">Add Team Bet</AwesomeButton>
         const refreshDataButton = <AwesomeButton onPress={this.refreshData} type="secondary">Refresh Data</AwesomeButton>
 
         // Input Dropdown Bar
-        var myOptions = []
+        var playerList = []
         this.state.todaysPlayers.forEach((player, key) => {
-            myOptions.push({ value: player, label: player })
+            playerList.push({ value: player, label: player })
         })
         const input = <Select
             showSearch
-            options={myOptions}
+            options={playerList}
             onChange={(e) => this.handleInput(e, "inputPlayer")}
             style={{ width: 200 }}
             className="select"
             value={this.state.inputPlayer}
         />
 
-        // Track Bets
-        const betPlayerInput = <Select
+        // Player Props
+        const playerNameInput = <Select
             showSearch
-            options={myOptions}
-            onChange={(e) => this.handleInput(e, "betPlayer")}
+            options={playerList}
+            onChange={(e) => this.handleInput(e, "betPlayerName")}
             style={{ width: 200 }}
             className="select"
-            value={this.state.betPlayer}
+            value={this.state.betPlayerName}
         />
 
         const stats = ["PTS", "3PM", "REB", "AST", "STL", "BLK", "TO"]
         const myStats = stats.map(stat =>
             ({ value: stat, label: stat })
         )
-        const betStatInput = <Select
+        const playerStatInput = <Select
             showSearch
             options={myStats}
-            onChange={(e) => this.handleInput(e, "betStat")}
+            onChange={(e) => this.handleInput(e, "betPlayerStat")}
             style={{ width: 200 }}
             className="select"
-            value={this.state.betStat}
+            value={this.state.betPlayerStat}
         />
 
         let lines = []
@@ -306,26 +339,26 @@ class BetTrackr extends React.Component {
         const myLines = lines.map(line =>
             ({ value: line, label: line })
         )
-        const betLineInput = <Select
+        const playerLineInput = <Select
             showSearch
             options={myLines}
-            onChange={(e) => this.handleInput(e, "betLine")}
+            onChange={(e) => this.handleInput(e, "betPlayerLine")}
             style={{ width: 200 }}
             className="select"
-            value={this.state.betLine}
+            value={this.state.betPlayerLine}
         />
 
         const overUnder = [
             { value: "over", label: "Over" },
             { value: "under", label: "Under" }
         ]
-        const overUnderInput = <Select
+        const playerOUInput = <Select
             showSearch
             options={overUnder}
-            onChange={(e) => this.handleInput(e, "overUnder")}
+            onChange={(e) => this.handleInput(e, "betPlayerOU")}
             style={{ width: 200 }}
             className="select"
-            value={this.state.overUnder}
+            value={this.state.betPlayerOU}
         />
 
         var myBets = this.state.trackedBets.map((bet, betKey) => (
@@ -335,70 +368,176 @@ class BetTrackr extends React.Component {
             </div>
         ))
 
+        // Team Bets
+        var teamList = []
+        this.state.todaysScoreboards.forEach(team => {
+            teamList.push({ value: team.basicGameData.hTeam.triCode, label: team.basicGameData.hTeam.triCode })
+            teamList.push({ value: team.basicGameData.vTeam.triCode, label: team.basicGameData.vTeam.triCode })
+        })
+        const teamNameInput = <Select
+            showSearch
+            options={teamList}
+            onChange={(e) => this.handleInput(e, "betTeamName")}
+            style={{ width: 200 }}
+            className="select"
+            value={this.state.betTeamName}
+        />
+
+        const teamBetTypes = ["Total Points", "Handicap"]
+        const myTypes = teamBetTypes.map(bet =>
+            ({ value: bet, label: bet })
+        )
+        const teamBetInput = <Select
+            showSearch
+            options={myTypes}
+            onChange={(e) => this.handleInput(e, "betTeamBet")}
+            style={{ width: 200 }}
+            className="select"
+            value={this.state.betTeamBet}
+        />
+
+        let teamLines = []
+        var startNum = 0
+        var endNum = 1
+        if (this.state.betTeamBet === "Total Points") {
+            startNum = 160
+            endNum = 250
+        } else if (this.state.betTeamBet === "Handicap") {
+            startNum = 0
+            endNum = 40
+        }
+        for (let j = startNum; j < endNum; j += 0.5) {
+            let number = j + 0.5
+            let string = number.toString()
+            teamLines.push(string)
+        }
+        var myTeamLines = teamLines.map(line =>
+            ({ value: line, label: line })
+        )
+        if (startNum === 0 && endNum === 1) {
+            myTeamLines = [{ value: "placeholder", label: "Please select a Bet Type" }]
+        }
+        const teamLineInput = <Select
+            showSearch
+            options={myTeamLines}
+            onChange={(e) => this.handleInput(e, "betTeamLine")}
+            style={{ width: 200 }}
+            className="select"
+            value={this.state.betTeamLine}
+        />
+
+        const minusPlus = [
+            { value: "-", label: "-" },
+            { value: "+", label: "+" }
+        ]
+        const placeholderOUMP = [{ value: "placeholder", label: "Please select a Bet Type" }]
+        var ouORmp = placeholderOUMP
+        if (this.state.betTeamBet === "Handicap") {
+            ouORmp = minusPlus
+        } else if (this.state.betTeamBet === "Total Points") {
+            ouORmp = overUnder
+        }
+        const teamOUMPInput = <Select
+            showSearch
+            options={ouORmp}
+            onChange={(e) => this.handleInput(e, "betTeamOUMP")}
+            style={{ width: 200 }}
+            className="select"
+            value={this.state.betTeamOUMP}
+        />
 
         // Play by Play
         var formattedPbp = []
-        this.state.newPbp.forEach((pbp, key) => {
-            var singlePbp = []
-            var gameName = pbp[0]
-            for (let i = 1; i < 5; i++) {
-                pbp.forEach((q_pbp, key2) => {
-                    if (key2 !== 0) {
-                        if (q_pbp.q_num === i) {
-                            q_pbp.q_data.plays.forEach((play, key3) => {
-                                for (let j = 0; j < this.state.trackedPlayers.length; j++) {
-                                    let player = this.state.trackedPlayers[j]
-                                    let isBold = ""
-                                    this.state.todaysPbp[key].forEach(q_pbp => {
-                                        if (q_pbp.q_num === i) {
-                                            let newPlay = true
-                                            q_pbp.q_data.plays.forEach(oldPlay => {
-                                                if (oldPlay.description === play.description) {
-                                                    newPlay = false
+        if (this.state.newPbp) {
+            this.state.newPbp.forEach((pbp, key) => {
+                var singlePbp = []
+                var gameName = pbp[0]
+                for (let i = 1; i < 5; i++) {
+                    pbp.forEach((q_pbp, key2) => {
+                        if (key2 !== 0) {
+                            if (q_pbp.q_num === i) {
+                                q_pbp.q_data.plays.forEach((play, key3) => {
+                                    for (let j = 0; j < this.state.trackedPlayers.length; j++) {
+                                        let player = this.state.trackedPlayers[j]
+                                        let isBold = ""
+                                        this.state.todaysPbp[key].forEach(q_pbp => {
+                                            if (q_pbp.q_num === i) {
+                                                let newPlay = true
+                                                q_pbp.q_data.plays.forEach(oldPlay => {
+                                                    if (oldPlay.description === play.description) {
+                                                        newPlay = false
+                                                    }
+                                                })
+                                                if (newPlay) {
+                                                    isBold = "bold"
                                                 }
-                                            })
-                                            if (newPlay) {
-                                                isBold = "bold"
                                             }
-                                        }
-                                    })
-                                    // if (!this.state.todaysPbp[key][key2].q_data.plays.includes(play)) {
-                                    //     isBold = "bold"
-                                    // }
+                                        })
+                                        // if (!this.state.todaysPbp[key][key2].q_data.plays.includes(play)) {
+                                        //     isBold = "bold"
+                                        // }
 
-                                    let lastName = player.substring(player.indexOf(" ") + 1)
-                                    if (play.description.includes(lastName)) {
-                                        singlePbp.unshift(
-                                            <p className={isBold}>
-                                                Q{q_pbp.q_num} {play.clock}: {play.description}
-                                            </p>
-                                        )
-                                        break;
+                                        let lastName = player.substring(player.indexOf(" ") + 1)
+                                        if (play.description.includes(lastName)) {
+                                            singlePbp.unshift(
+                                                <p className={isBold}>
+                                                    Q{q_pbp.q_num} {play.clock}: {play.description}
+                                                </p>
+                                            )
+                                            break;
+                                        }
                                     }
-                                }
-                            })
+                                })
+                            }
                         }
-                    }
-                })
-            }
-            if (singlePbp.length > 0) {
-                singlePbp.unshift(<h2>{gameName}</h2>)
-            }
-            formattedPbp.unshift(singlePbp)
-        })
+                    })
+                }
+                if (singlePbp.length > 0) {
+                    singlePbp.unshift(<h2>{gameName}</h2>)
+                }
+                formattedPbp.unshift(singlePbp)
+            })
+        }
+
+
+        // Scoreboard View
+        var scoreboard = this.state.todaysScoreboards.map(game => (
+            <Scoreboard
+                quarter={game.basicGameData.period.current}
+                clock={game.basicGameData.clock}
+                hTeamName={game.basicGameData.hTeam.triCode}
+                vTeamName={game.basicGameData.vTeam.triCode}
+                hTeamScore={game.stats.hTeam.totals.points}
+                vTeamScore={game.stats.vTeam.totals.points}
+                bets={this.state.trackedTeamBets}
+                handleRemoveBet={this.removeTrackTeamBet}
+                pbp={this.state.newPbp}
+                trackedPlayers={this.state.trackedPlayers}
+            />
+        ))
         return (
             <div>
                 <Subcontent heading="Add Bets">
-                    {betPlayerInput}
-                    {betStatInput}
-                    {betLineInput}
-                    {overUnderInput}
+                    {playerNameInput}
+                    {playerStatInput}
+                    {playerLineInput}
+                    {playerOUInput}
                     {addBetButton}
                     {myBets}
+                    <br />
+                    <br />
+                    {teamNameInput}
+                    {teamBetInput}
+                    {teamLineInput}
+                    {teamOUMPInput}
+                    {addTeamBetButton}
                 </Subcontent>
-                <Content heading='Your Scoreboard' headingright2={addPlayerButton} headingright={input}>
+                <Subcontent heading="Scoreboard">
+                    {scoreboard}
+                </Subcontent>
+                <Content heading='Box Score' headingright2={addPlayerButton} headingright={input}>
                     {refreshDataButton}
-                    <Scoreboard
+                    <BoxScore
                         trackedPlayers={this.state.trackedPlayers}
                         todaysScoreboards={this.state.todaysScoreboards}
                         trackedBets={this.state.trackedBets}

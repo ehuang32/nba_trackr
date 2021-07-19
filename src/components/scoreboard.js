@@ -1,334 +1,80 @@
 import React from 'react';
-import { Table, Button } from 'antd';
+import { Button } from 'antd';
 import '../css/scoreboard.css';
 
-// Function to parse a stat and bet combo e.g. 15 [o13.5] 5 - 12 [o2.5]
-function hasBetHit(statAndBet) {
-    let stat = statAndBet.substring(0, statAndBet.indexOf(" "))
-    let ou = statAndBet.substring(statAndBet.indexOf("[") + 1, statAndBet.indexOf("[") + 2)
-    let line = statAndBet.substring(statAndBet.indexOf("[") + 2, statAndBet.length - 1)
-
-    if (ou === "o") {
-        if (parseFloat(stat) > parseFloat(line)) {
-            return true
-        } else {
-            return false
-        }
-    } else if (ou === "u") {
-        if (parseFloat(stat) < parseFloat(line)) {
-            return true
-        } else {
-            return false
-        }
-    }
-}
-
-
 class Scoreboard extends React.Component {
-
-    constructor(props) {
-        super(props);
-        this.columns = [
-            {
-                title: 'PLAYER NAME',
-                dataIndex: 'name',
-                key: 'name',
-                sorter: (a, b) => a.name < b.name
-            },
-            {
-                title: 'TEAM',
-                dataIndex: 'team',
-                key: 'team'
-            },
-            {
-                title: 'MIN',
-                dataIndex: 'min',
-                key: 'min',
-                sorter: (a, b) => a.min - b.min
-            },
-            {
-                title: 'FG',
-                dataIndex: 'fg',
-                key: 'fg',
-                sorter: (a, b) => a.fgm - b.fgm
-            },
-            {
-                title: '3PT',
-                dataIndex: 'tp',
-                key: 'tp',
-                sorter: (a, b) => a.tpm - b.tpm,
-                render(text, record) {
-                    if (!text.includes("[")) {
-                        return {
-                            children: <div>{text}</div>
-                        }
-                    } else {
-                        return {
-                            props: {
-                                style: { color: hasBetHit(text) ? 'green' : 'red' }
-                            },
-                            children: <div>{text}</div>
-                        }
-                    }
-                }
-            },
-            {
-                title: 'FT',
-                dataIndex: 'ft',
-                key: 'ft',
-                sorter: (a, b) => a.ftm - b.ftm
-            },
-            {
-                title: 'REB',
-                dataIndex: 'reb',
-                key: 'reb',
-                sorter: (a, b) => a.reb - b.reb,
-                render(text, record) {
-                    if (!text.includes("[")) {
-                        return {
-                            children: <div>{text}</div>
-                        }
-                    } else {
-                        return {
-                            props: {
-                                style: { color: hasBetHit(text) ? 'green' : 'red' }
-                            },
-                            children: <div>{text}</div>
-                        }
-                    }
-                }
-            },
-            {
-                title: 'AST',
-                dataIndex: 'ast',
-                key: 'ast',
-                sorter: (a, b) => a.ast - b.ast,
-                render(text, record) {
-                    if (!text.includes("[")) {
-                        return {
-                            children: <div>{text}</div>
-                        }
-                    } else {
-                        return {
-                            props: {
-                                style: { color: hasBetHit(text) ? 'green' : 'red' }
-                            },
-                            children: <div>{text}</div>
-                        }
-                    }
-                }
-            },
-            {
-                title: 'STL',
-                dataIndex: 'stl',
-                key: 'stl',
-                sorter: (a, b) => a.stl - b.stl,
-                render(text, record) {
-                    if (!text.includes("[")) {
-                        return {
-                            children: <div>{text}</div>
-                        }
-                    } else {
-                        return {
-                            props: {
-                                style: { color: hasBetHit(text) ? 'green' : 'red' }
-                            },
-                            children: <div>{text}</div>
-                        }
-                    }
-                }
-            },
-            {
-                title: 'BLK',
-                dataIndex: 'blk',
-                key: 'blk',
-                sorter: (a, b) => a.blk - b.blk,
-                render(text, record) {
-                    if (!text.includes("[")) {
-                        return {
-                            children: <div>{text}</div>
-                        }
-                    } else {
-                        return {
-                            props: {
-                                style: { color: hasBetHit(text) ? 'green' : 'red' }
-                            },
-                            children: <div>{text}</div>
-                        }
-                    }
-                }
-            },
-            {
-                title: 'TO',
-                dataIndex: 'to',
-                key: 'to',
-                sorter: (a, b) => a.to - b.to,
-                render(text, record) {
-                    if (!text.includes("[")) {
-                        return {
-                            children: <div>{text}</div>
-                        }
-                    } else {
-                        return {
-                            props: {
-                                style: { color: hasBetHit(text) ? 'green' : 'red' }
-                            },
-                            children: <div>{text}</div>
-                        }
-                    }
-                }
-            },
-            {
-                title: 'PF',
-                dataIndex: 'pFouls',
-                key: 'pFouls',
-                sorter: (a, b) => a.pFouls - b.pFouls
-            },
-            {
-                title: '+-',
-                dataIndex: 'plusMinus',
-                key: 'plusMinus',
-            },
-            {
-                title: 'PTS',
-                dataIndex: 'pts',
-                key: 'pts',
-                sorter: (a, b) => a.pts - b.pts,
-                render(text, record) {
-                    if (!text.includes("[")) {
-                        return {
-                            children: <div>{text}</div>
-                        }
-                    } else {
-                        return {
-                            props: {
-                                style: { color: hasBetHit(text) ? 'green' : 'red' }
-                            },
-                            children: <div>{text}</div>
-                        }
-                    }
-                }
-            },
-            {
-                title: '',
-                key: '',
-                render: (text, record) => {
-                    return (
-                        <Button type="text" onClick={() => this.props.removeTrackPlayer(record.name)}>x</Button>
-                    )
-                }
-            }
-        ]
-    }
-
     render() {
-        var teams = {}
-        var data = []
-        this.props.todaysScoreboards.forEach((sb, key) => {
-            teams[sb.basicGameData.vTeam.teamId] = sb.basicGameData.vTeam.triCode
-            teams[sb.basicGameData.hTeam.teamId] = sb.basicGameData.hTeam.triCode
-            if ("stats" in sb) {
-                sb.stats.activePlayers.forEach((player, key2) => {
-                    let ptsLine = ""
-                    let tpmLine = ""
-                    let rebLine = ""
-                    let astLine = ""
-                    let stlLine = ""
-                    let blkLine = ""
-                    let toLine = ""
-                    this.props.trackedBets.forEach(bet => {
-                        if (bet.player === player.firstName.concat(" ", player.lastName)) {
-                            let lineSuffix = ""
-                            if (bet.ou === "over") {
-                                lineSuffix = ` [o${bet.line}]`
-                            } else {
-                                lineSuffix = ` [u${bet.line}]`
-                            }
-                            switch (bet.stat) {
-                                case "PTS":
-                                    ptsLine = lineSuffix
-                                    break;
-                                case "3PM":
-                                    tpmLine = lineSuffix
-                                    break;
-                                case "REB":
-                                    rebLine = lineSuffix
-                                    break;
-                                case "AST":
-                                    astLine = lineSuffix
-                                    break;
-                                case "STL":
-                                    stlLine = lineSuffix
-                                    break;
-                                case "BLK":
-                                    blkLine = lineSuffix
-                                    break;
-                                case "TO":
-                                    toLine = lineSuffix
-                                    break;
-                                default:
+        let clock = this.props.clock;
+        if (this.props.clock === "") {
+            clock = "FINAL"
+        }
 
+        var bets = []
+        this.props.bets.forEach((bet, betKey) => {
+            if (bet.team === this.props.hTeamName || bet.team === this.props.vTeamName) {
+                bets.push(
+                    <div>
+                        <Button type="text" onClick={() => this.props.handleRemoveBet(betKey)}>x</Button>
+                        <strong> {bet.team} {bet.oump} {bet.line} {bet.bet}</strong>
+                    </div>
+                )
+            }
+        })
+
+        var myPbp = []
+        this.props.pbp.forEach((pbp, pbpKey) => {
+            const gameName = pbp[0]
+            let hTeam = gameName.substring(0, 3)
+            let vTeam = gameName.substring(7, 10)
+            console.log(hTeam)
+            console.log(vTeam)
+            if (this.props.hTeamName === hTeam || this.props.hTeamName === vTeam) {
+                for (let i = 1; i < 5; i++) {
+                    pbp.forEach((q_pbp, qpbpKey) => {
+                        if (qpbpKey !== 0) {
+                            if (q_pbp.q_num === i) {
+                                q_pbp.q_data.plays.forEach(play => {
+                                    let isBold = ""
+                                    for (let j = 0; j < this.props.trackedPlayers.length; j++) {
+                                        let player = this.props.trackedPlayers[j]
+                                        let lastName = player.substring(player.indexOf(" ") + 1)
+                                        if (play.description.includes(lastName)) {
+                                            isBold = "bold"
+                                        }
+                                    }
+                                    myPbp.unshift(
+                                        <p className={isBold}>
+                                            Q{q_pbp.q_num} {play.clock}: {play.description}
+                                        </p>
+                                    )
+                                })
                             }
                         }
                     })
-                    const scoreline = {
-                        name: player.firstName.concat(" ", player.lastName),
-                        position: player.pos,
-                        team: teams[player.teamId],
-                        min: player.min,
-                        fg: player.fgm.concat(" - ", player.fga),
-                        ft: player.ftm.concat(" - ", player.fta),
-                        tp: player.tpm.concat(" - ", player.tpa, tpmLine),
-                        reb: player.totReb.concat(rebLine),
-                        ast: player.assists.concat(astLine),
-                        stl: player.steals.concat(stlLine),
-                        blk: player.blocks.concat(blkLine),
-                        to: player.turnovers.concat(toLine),
-                        pFouls: player.pFouls,
-                        plusMinus: player.plusMinus,
-                        pts: player.points.concat(ptsLine),
-                    }
-                    data.push(scoreline)
-                })
-            }
-        })
-
-        var filteredData = []
-        data.forEach((scoreline, key) => {
-            if (this.props.trackedPlayers.includes(scoreline.name)) {
-                filteredData.push(scoreline)
-            }
-        })
-
-        if (data.length === 0) {
-            this.props.trackedPlayers.forEach(player => {
-                const emptyScoreline = {
-                    name: player,
-                    position: "",
-                    team: "",
-                    min: "",
-                    fg: "",
-                    ft: "",
-                    tp: "",
-                    reb: "",
-                    ast: "",
-                    stl: "",
-                    blk: "",
-                    to: "",
-                    pFouls: "",
-                    plusMinus: "",
-                    pts: "",
                 }
-                filteredData.push(emptyScoreline)
-            })
-        }
+            }
+        })
+
         return (
-            <Table
-                className='table'
-                columns={this.columns}
-                dataSource={filteredData}
-                rowClassName={(record, index) => index % 2 === 0 ? 'table-row-light' : 'table-row-dark'}
-            />
+            <div className="scoreboard-container">
+                <div className="score">
+                    <div className="center">
+                        Q{this.props.quarter} {clock}
+                    </div>
+                    <div className="center">
+                        {this.props.hTeamName}&nbsp;&nbsp;&nbsp;&nbsp;{this.props.hTeamScore}
+                    </div>
+                    <div className="center">
+                        {this.props.vTeamName}&nbsp;&nbsp;&nbsp;&nbsp;{this.props.vTeamScore}
+                    </div>
+                </div>
+                <div className="bets">
+                    {bets}
+                </div>
+                <div className="pbp">
+                    {myPbp}
+                </div>
+            </div>
         )
     }
 }

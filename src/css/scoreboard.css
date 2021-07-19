@@ -1,6 +1,55 @@
-.table-row-light {
-    background-color: #ffffff;
+.scoreboard-container {
+    display: inline-flex;
+    flex-wrap: wrap;
+    margin: 20px;
+    width: 45%;
 }
-.table-row-dark {
-    background-color: #fbfbfb;
+
+.score {
+    background-color: rgb(180, 180, 180);
+    width: 20%;
+    padding: 22px;
+    height: 116px;
+}
+
+.bets {
+    background-color: lightgray;
+    width: 80%;
+    padding: 10px;
+    height: 116px;
+    overflow: auto;
+}
+
+.pbp {
+    display: inline-block;
+    background-color: rgb(235, 233, 233);
+    width: 100%;
+    padding: 10px;
+    height: 116px;
+    overflow: auto;
+}
+
+.center {
+    text-align: center;
+    font-weight: bold;
+}
+
+.line {
+    display: block;
+}
+
+.team {
+    display: inline;
+    text-align: left;
+    font-weight: bold;
+}
+
+.score {
+    display: inline-block;
+    text-align: right;
+    font-weight: bold;
+}
+
+.bold {
+    font-weight: bold;
 }
