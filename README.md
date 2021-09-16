@@ -1,5 +1,7 @@
 # NBA Bet Tracker README
 
+An app designed to track the progress and outcomes of your NBA bets in realtime.
+
 ## Create React App Placeholder
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
