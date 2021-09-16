@@ -1,4 +1,6 @@
-# Getting Started with Create React App
+# NBA Bet Tracker README
+
+## Create React App Placeholder
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
