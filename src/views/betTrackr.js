@@ -56,7 +56,7 @@ class BetTrackr extends React.Component {
         axios.get(`https://data.nba.net/10s/prod/v1/today.json`)
             .then(t_response => {
                 var date = t_response.data.links.anchorDate
-                date = "20210528"
+                // date = "20210528"
                 axios.get(`https://data.nba.net/10s/prod/v1/${date}/scoreboard.json`)
                     .then(g_response => {
                         var all_gameIds = []
