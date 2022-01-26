@@ -501,14 +501,16 @@ class BetTrackr extends React.Component {
 
 
         // Scoreboard View
+        console.log(this.state.todaysScoreboards)
+
         var scoreboard = this.state.todaysScoreboards.map(game => (
             <Scoreboard
                 quarter={game.basicGameData.period.current}
                 clock={game.basicGameData.clock}
                 hTeamName={game.basicGameData.hTeam.triCode}
                 vTeamName={game.basicGameData.vTeam.triCode}
-                hTeamScore={game.stats.hTeam.totals.points}
-                vTeamScore={game.stats.vTeam.totals.points}
+                hTeamScore={game.stats ? game.stats.hTeam.totals.points : 0}
+                vTeamScore={game.stats ? game.stats.vTeam.totals.points : 0}
                 bets={this.state.trackedTeamBets}
                 handleRemoveBet={this.removeTrackTeamBet}
                 pbp={this.state.newPbp}
